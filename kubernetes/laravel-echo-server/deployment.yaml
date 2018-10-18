@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: laravel-echo-server
+  labels:
+    app: laravel-echo-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-echo-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: laravel-echo-server
+    spec:
+      #imagePullSecrets:
+      #  - name: "docker-registry-secrets"
+      volumes:
+        - name: laravel-echo-server-config-volume
+          configMap:
+            name: laravel-echo-server-config
+      containers:
+        - name: laravel-echo-server
+          image: <your_name>/<your_echo_server_image>:<tag>
+          command: ['npm', 'start']
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          ports:
+            - containerPort: 6001
+          volumeMounts:
+            - name: laravel-echo-server-config-volume
+              mountPath: /app/laravel-echo-server.json
+              subPath: laravel-echo-server.json
+          

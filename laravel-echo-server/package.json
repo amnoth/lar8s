@@ -1,0 +1,12 @@
+{
+    "name": "laravel-echo-server",
+    "description": "",
+    "version": "0.0.1",
+    "license": "MIT",
+    "scripts": {
+        "start": "laravel-echo-server start"
+    },
+    "dependencies": {
+      "laravel-echo-server": "^1.4.2"
+    }
+  }

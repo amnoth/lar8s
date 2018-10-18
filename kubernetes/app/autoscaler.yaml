@@ -9,5 +9,5 @@ spec:
     kind: Deployment
     name: laravel-app
   minReplicas: 1
-  maxReplicas: 10
-  targetCPUUtilizationPercentage: 75
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 60

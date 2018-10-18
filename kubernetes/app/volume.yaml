@@ -1,0 +1,26 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: laravel-app-storage-persistent-volume
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /var/www/html/storage
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: laravel-app-storage-pvc
+  labels:
+    name: laravel-app-storage-persistent-volume
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi

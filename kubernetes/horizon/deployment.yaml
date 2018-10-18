@@ -1,14 +1,14 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: laravel-app
+  name: laravel-horizon
   labels:
-    app: laravel-app
+    app: laravel-horizon
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: laravel-app
+      app: laravel-horizon
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -17,23 +17,16 @@ spec:
   template:
     metadata:
       labels:
-        app: laravel-app
+        app: laravel-horizon
     spec:
       #imagePullSecrets:
       #  - name: "docker-registry-secrets"
       volumes:
         - name: laravel-app-volume
           emptyDir: {}
-        - name: nginx-config-volume
-          configMap:
-            name: nginx-config
         - name: laravel-app-storage-persistent-volume
           persistentVolumeClaim:
             claimName: laravel-app-storage-pvc
-      hostAliases:
-        - ip: "127.0.0.1"
-          hostnames:
-            - "backend"
       initContainers:
         - name: app
           image: <your_name>/<your_app_image>:<tag>
@@ -55,16 +48,17 @@ spec:
             - secretRef:
                 name: laravel-app-secrets
       containers:
-        - name: php-fpm
+        - name: horizon
           image: edbizarro/gitlab-ci-pipeline-php:7.2-fpm
           imagePullPolicy: Always
+          command: ['php', 'artisan', 'horizon']
           resources:
             limits:
               cpu: 200m
-              memory: 256Mi
+              memory: 1536Mi
             requests:
               cpu: 200m
-              memory: 256Mi
+              memory: 1536Mi
           livenessProbe:
             exec:
               command: ['php', '-v']
@@ -75,8 +69,6 @@ spec:
               command: ['php', '-v']
             initialDelaySeconds: 3
             periodSeconds: 5
-          ports:
-            - containerPort: 9000
           volumeMounts:
             - name: laravel-app-volume
               mountPath: /var/www/html
@@ -85,35 +77,3 @@ spec:
           envFrom:
             - secretRef:
                 name: laravel-app-secrets
-        - name: nginx
-          image: nginx:latest
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 256Mi
-            requests:
-              cpu: 200m
-              memory: 256Mi
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 3
-            periodSeconds: 5
-          ports:
-            - containerPort: 80
-          volumeMounts:
-            - name: laravel-app-volume
-              mountPath: /var/www/html
-            - name: laravel-app-storage-persistent-volume
-              mountPath: /var/www/html/storage
-            - name: nginx-config-volume
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf

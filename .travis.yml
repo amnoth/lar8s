@@ -6,14 +6,24 @@ services:
   - docker
     
 before_script:
-  - sudo apt-get install curl git unzip
-
+  - sudo apt-get install curl git
+  - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.11.0/bin/linux/amd64/kubectl
+  - chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+  - curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+  - chmod +x minikube && sudo mv minikube /usr/local/bin/
+  - sudo minikube start --vm-driver=none --kubernetes-version=v1.11.0
+  - minikube update-context
 script:
   - docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
-  - git clone https://github.com/laravel/laravel.git app
-  - cp -r app/* .
-  - rm -rf app/
-  - docker build . -t rennokki/lar8s:${TRAVIS_BUILD_ID}-${TRAVIS_BUILD_NUMBER}
-  - docker push rennokki/lar8s:${TRAVIS_BUILD_ID}-${TRAVIS_BUILD_NUMBER}
-  - docker build docker/php-fpm/ -t rennokki/lar8s-php-fpm:${TRAVIS_BUILD_ID}-${TRAVIS_BUILD_NUMBER}
-  - docker push rennokki/lar8s-php-fpm:${TRAVIS_BUILD_ID}-${TRAVIS_BUILD_NUMBER}
+  - export APP_IMAGE=rennokki/lar8s:app-${TRAVIS_BUILD_ID}-${TRAVIS_BUILD_NUMBER}
+  - export ECHO_IMAGE=rennokki/lar8s:echo-server-${TRAVIS_BUILD_ID}-${TRAVIS_BUILD_NUMBER}
+  - cd laravel && docker build . -t $APP_IMAGE
+  - cd .. && cd laravel-echo-server && $ECHO_IMAGE
+  - docker push $APP_IMAGE
+  - docker push $ECHO_IMAGE
+  - sed -i "s/<your_name>\/<your_app_image>:<tag>/$APP_IMAGE/g" kubernetes/app/deployment.yaml
+  - sed -i "s/<your_name>\/<your_app_image>:<tag>/$APP_IMAGE/g" kubernetes/app/cronjob.yaml
+  - sed -i "s/<your_name>\/<your_app_image>:<tag>/$APP_IMAGE/g" kubernetes/horizon/deployment.yaml
+  - sed -i "s/<your_name>\/<your_echo_server_image>:<tag>/$ECHO_IMAGE/g" kubernetes/laravel-echo-server/deployment.yaml
+  - sh test.sh
+  - sh deploy.sh

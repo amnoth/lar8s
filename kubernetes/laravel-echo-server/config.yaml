@@ -1,0 +1,28 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: laravel-echo-server-config
+  labels:
+    name: laravel-echo-server-config
+data:
+  "laravel-echo-server.json": |
+    {
+      "authHost": "nginx-service",
+      "authEndpoint": "/broadcasting/auth",
+      "clients": [],
+      "database": "redis",
+      "databaseConfig": {
+        "redis": {
+          "port": "6379",
+          "host": "redis-service",
+          "password": "secret"
+        }
+      },
+      "devMode": true,
+      "host": null,
+      "port": "6001",
+      "protocol": "http",
+      "socketio": {},
+      "sslCertPath": "",
+      "sslKeyPath": ""
+    }

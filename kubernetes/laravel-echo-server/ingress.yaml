@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: laravel-echo-server-ingress
+spec:
+  backend:
+    serviceName: default-http-backend
+    servicePort: 6001
+  rules:
+  - host: echo.kubernetes.test
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: laravel-echo-server-service
+            servicePort: 6001

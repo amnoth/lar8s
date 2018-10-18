@@ -1,0 +1,64 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: laravel-app-cronjob
+spec:
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          #imagePullSecrets:
+          #  - name: "docker-registry-secrets"
+          volumes:
+            - name: laravel-app-volume
+              emptyDir: {}
+            - name: laravel-app-storage-persistent-volume
+              persistentVolumeClaim:
+                claimName: laravel-app-storage-pvc
+          initContainers:
+            - name: app
+              image: <your_name>/<your_app_image>:<tag>
+              command: ['/bin/sh', '-c', 'cp -rp /var/www/html/* /app/']
+              imagePullPolicy: Always
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 256Mi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+              volumeMounts:
+                - name: laravel-app-volume
+                  mountPath: /app
+                - name: laravel-app-storage-persistent-volume
+                  mountPath: /app/storage
+              envFrom:
+                - secretRef:
+                    name: laravel-app-secrets
+          containers:
+          - name: horizon
+            image: registry.gitlab.com/extratips/docker-images/php:7.2-alpine
+            imagePullPolicy: Always
+            args:
+              - php
+              - artisan
+              - schedule:run
+            resources:
+              limits:
+                cpu: 200m
+                memory: 256Mi
+              requests:
+                cpu: 200m
+                memory: 256Mi
+            volumeMounts:
+              - name: laravel-app-volume
+                mountPath: /var/www/html
+              - name: laravel-app-storage-persistent-volume
+                mountPath: /var/www/html/storage
+            envFrom:
+              - secretRef:
+                  name: laravel-app-secrets
+          restartPolicy: OnFailure

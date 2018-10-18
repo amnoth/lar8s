@@ -28,11 +28,21 @@ spec:
                 name: mongo-secrets
           resources:
             limits:
-              cpu: 100m
-              memory: 64Mi
+              cpu: 200m
+              memory: 256Mi
             requests:
-              cpu: 100m
-              memory: 64Mi
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 3
+            periodSeconds: 5
           ports:
             - containerPort: 27017
               name: mongo
